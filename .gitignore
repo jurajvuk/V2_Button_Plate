@@ -1,0 +1,35 @@
+# Build output
+build/
+cmake-build*/
+Debug/
+Release/
+
+# Object and binary files
+*.o
+*.obj
+*.elf
+*.bin
+*.hex
+*.map
+*.a
+*.d
+
+# CMake cache
+CMakeCache.txt
+CMakeFiles/
+
+# VSCode local state
+.vscode/.browse.VC.db*
+.vscode/ipch/
+
+# macOS files
+.DS_Store
+
+# Windows files
+Thumbs.db
+
+# STM32CubeMX temporary files
+mx.scratch
+
+# Keep STM32CubeMX project settings
+!.settings
