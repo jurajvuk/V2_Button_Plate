@@ -111,38 +111,40 @@ HAL_StatusTypeDef PCAL6524_Init(uint8_t i2c_address)
     uint8_t all_ones[3] = {0xFF, 0xFF, 0xFF};
     uint8_t all_zeros[3] = {0x00, 0x00, 0x00};
     
-    // Mask for Port 0 Debounce: 0xFE (1111 1110)
-    // We disable debouncing on Pin 0 because it is the 32kHz clock input.
-    uint8_t debounce_en[3] = {0xFE, 0xFF, 0xFF}; 
-    
-    // Debounce Count Calculation for 5ms with 32kHz external clock:
-    // 5000us / (2 * (1/32000)) = 5000 / 62.5 = 80
-    uint8_t debounce_val = 80; 
+    // Debounce enable for P0 and P1 only — Port 2 has no debounce hardware.
+    // P0_0 excluded (0xFE) because it carries the 32kHz external clock input.
+    uint8_t debounce_en[2] = {0xFE, 0xFF};
+
+    // Debounce Count: t_DP = T_clk × count → 5ms at 32kHz: (1/32000) × count = 0.005 → count = 160
+    uint8_t debounce_val = 160;
 
     HAL_StatusTypeDef status;
 
     // 1. Configuration: Set all 24 pins as INPUTS
-    status = HAL_I2C_Mem_Write(&hi2c1, dev_addr, REG_CONFIG_P0, I2C_MEMADD_SIZE_8BIT, all_ones, 3, 100);
+    status = HAL_I2C_Mem_Write(pcal6524.i2c_handle, dev_addr, REG_CONFIG_P0, I2C_MEMADD_SIZE_8BIT, all_ones, 3, 100);
     if (status != HAL_OK) return status;
 
     // 2. Pull-up/down Enable: Enable internal resistors
-    status = HAL_I2C_Mem_Write(&hi2c1, dev_addr, REG_PUD_EN_P0, I2C_MEMADD_SIZE_8BIT, all_ones, 3, 100);
+    status = HAL_I2C_Mem_Write(pcal6524.i2c_handle, dev_addr, REG_PUD_EN_P0, I2C_MEMADD_SIZE_8BIT, all_ones, 3, 100);
     if (status != HAL_OK) return status;
 
     // 3. Pull-up/down Selection: Select PULL-UP (Active Low Buttons)
-    status = HAL_I2C_Mem_Write(&hi2c1, dev_addr, REG_PUD_SEL_P0, I2C_MEMADD_SIZE_8BIT, all_ones, 3, 100);
+    status = HAL_I2C_Mem_Write(pcal6524.i2c_handle, dev_addr, REG_PUD_SEL_P0, I2C_MEMADD_SIZE_8BIT, all_ones, 3, 100);
     if (status != HAL_OK) return status;
 
-    // 4. Debounce Enable: Enable for all pins except the clock input (IO0_0)
-    status = HAL_I2C_Mem_Write(&hi2c1, dev_addr, REG_DEBOUNCE_EN_P0, I2C_MEMADD_SIZE_8BIT, debounce_en, 3, 100);
+    // 4. Switch Debounce Enable: P0 and P1 only (Port 2 has no debounce hardware)
+    status = HAL_I2C_Mem_Write(pcal6524.i2c_handle, dev_addr, REG_SW_DEBOUNCE_EN_P0, I2C_MEMADD_SIZE_8BIT, debounce_en, 2, 100);
     if (status != HAL_OK) return status;
 
-    // 5. Debounce Count: Set global time to ~5ms based on 32kHz source
-    status = HAL_I2C_Mem_Write(&hi2c1, dev_addr, REG_DEBOUNCE_COUNT, I2C_MEMADD_SIZE_8BIT, &debounce_val, 1, 100);
+    // 5. Switch Debounce Count: ~5ms at 32kHz external clock
+    status = HAL_I2C_Mem_Write(pcal6524.i2c_handle, dev_addr, REG_SW_DEBOUNCE_COUNT, I2C_MEMADD_SIZE_8BIT, &debounce_val, 1, 100);
     if (status != HAL_OK) return status;
 
-    // 6. Interrupt Mask: Unmask all interrupts (0=Enable)
-    status = HAL_I2C_Mem_Write(&hi2c1, dev_addr, REG_INT_MASK_P0, I2C_MEMADD_SIZE_8BIT, all_zeros, 3, 100);
-    
+    // 6. Wait 9 clock cycles at 32kHz (~281us) for debounce clock to settle (datasheet Fig. 13)
+    HAL_Delay(1);
+
+    // 7. Interrupt Mask: Unmask all interrupts (0=Enable)
+    status = HAL_I2C_Mem_Write(pcal6524.i2c_handle, dev_addr, REG_INT_MASK_P0, I2C_MEMADD_SIZE_8BIT, all_zeros, 3, 100);
+
     return status;
 }
