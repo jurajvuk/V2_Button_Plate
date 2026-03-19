@@ -5,9 +5,9 @@
 #include "stm32f1xx_hal.h"
 
 /**********************************DEFINES******************************************/
-#define FIRST_PCAL6524_I2C_ADDR   	0x20
-#define SECOND_PCAL6524_I2C_ADDR   	0x21
-#define THIRD_PCAL6524_I2C_ADDR   	0x22
+#define PCAL6524_I2C_ADDR_U1		0x20
+#define PCAL6524_I2C_ADDR_U2	   	0x22
+#define PCAL6524_I2C_ADDR_U5	   	0x21
 
 // ===================================================================
 // PCAL6524 REGISTER MAP (Corrected for Agile I/O & External Debounce)
@@ -30,10 +30,8 @@
 /*********************************STRUCTURES****************************************/
 typedef struct {
 	I2C_HandleTypeDef *i2c_handle;
-	uint16_t i2c_addr_first;
-    uint16_t i2c_addr_second;
-    uint16_t i2c_addr_third;
-	uint32_t timeout_ms;
+	uint16_t i2c_addr;
+    uint32_t timeout_ms;
 	uint8_t init_complete;
 }pcal6524_s;
 
@@ -42,8 +40,8 @@ typedef struct {
 
 
 /****************************FUNCTION PROTOTYPES************************************/
-void pcal_init(I2C_HandleTypeDef *ui2c_handle, uint16_t i2c_addr_first, uint16_t i2c_addr_second, uint16_t i2c_addr_third, uint32_t timeout_ms);
+void PCAL6524_init(I2C_HandleTypeDef *ui2c_handle, uint16_t i2c_addr_u1, uint16_t i2c_addr_u2, uint16_t i2c_addr_u5, uint32_t timeout_ms);
 uint32_t Read_PCAL_DeviceID(uint8_t i2c_address);
-HAL_StatusTypeDef PCAL6524_Init(uint8_t i2c_address);
+HAL_StatusTypeDef PCAL6524_register_init(uint8_t i2c_address);
 
 #endif /* PCAL6524_H_ */

@@ -118,11 +118,10 @@ int main(void)
   Load_Calibration_Data(); // Load calibration data from flash memory
   HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
   shifter_init(); // Initialize the shifters based on calibration data
-  pcal_init(&hi2c1, FIRST_PCAL6524_I2C_ADDR, SECOND_PCAL6524_I2C_ADDR, THIRD_PCAL6524_I2C_ADDR, 100);
+  PCAL6524_init(&hi2c1, PCAL6524_I2C_ADDR_U1, PCAL6524_I2C_ADDR_U2, PCAL6524_I2C_ADDR_U5, 100);
   //uint32_t id1 = Read_PCAL_DeviceID(34);
-  PCAL6524_Init(FIRST_PCAL6524_I2C_ADDR);
-  PCAL6524_Init(SECOND_PCAL6524_I2C_ADDR);
-  PCAL6524_Init(THIRD_PCAL6524_I2C_ADDR);
+  PCAL6524_register_init(PCAL6524_I2C_ADDR_U1);
+  
 
   ws2812_init(&htim1, TIM_CHANNEL_1); // Initialize WS2812B with the timer and channel
   ws2812_send(0, 0, 0); // Send a red color to the first LED as a test

@@ -2,23 +2,26 @@
 /*********************************INCLUDES******************************************/
 #include "BSP/pcal6524.h"
 #include "i2c.h"
+#include <stdint.h>
 
 /**********************GLOBAL VARIABLES AND CONSTANTS*******************************/
 
 
 /****************************FORWARD DECLARATIONS***********************************/
-static pcal6524_s pcal6524;
+static pcal6524_s pcal6524[3];
 
 
 /*********************************FUNCTIONS*****************************************/
-void pcal_init(I2C_HandleTypeDef *i2c_handle, uint16_t i2c_addr_first, uint16_t i2c_addr_second, uint16_t i2c_addr_third, uint32_t timeout_ms)
+void PCAL6524_init(I2C_HandleTypeDef *i2c_handle, uint16_t i2c_addr_u1, uint16_t i2c_addr_u2, uint16_t i2c_addr_u5, uint32_t timeout_ms)
 {
-    pcal6524.i2c_handle = i2c_handle;
-    pcal6524.i2c_addr_first = i2c_addr_first;
-    pcal6524.i2c_addr_second = i2c_addr_second;
-    pcal6524.i2c_addr_third = i2c_addr_third;
-    pcal6524.timeout_ms = timeout_ms;
-    pcal6524.init_complete = 1;
+    uint16_t i2c_addr[3] = {i2c_addr_u1, i2c_addr_u2, i2c_addr_u5};
+    for (int i = 0; i < 3; i++) {
+        pcal6524[i].i2c_handle = i2c_handle;
+        pcal6524[i].i2c_addr = (i2c_addr[i] << 1);
+        pcal6524[i].timeout_ms = timeout_ms;
+        pcal6524[i].init_complete = 1;
+    }
+    
 }
 
 uint32_t Read_PCAL_DeviceID(uint8_t i2c_address)
@@ -105,7 +108,7 @@ uint32_t Read_PCAL_DeviceID(uint8_t i2c_address)
   * using an external 32kHz clock provided on IO0_0.
   * @param  i2c_address: 7-bit address (0x20, 0x21, or 0x22)
   */
-HAL_StatusTypeDef PCAL6524_Init(uint8_t i2c_address)
+HAL_StatusTypeDef PCAL6524_register_init(uint8_t i2c_address)
 {
     uint16_t dev_addr = (i2c_address << 1);
     uint8_t all_ones[3] = {0xFF, 0xFF, 0xFF};
@@ -121,30 +124,30 @@ HAL_StatusTypeDef PCAL6524_Init(uint8_t i2c_address)
     HAL_StatusTypeDef status;
 
     // 1. Configuration: Set all 24 pins as INPUTS
-    status = HAL_I2C_Mem_Write(pcal6524.i2c_handle, dev_addr, REG_CONFIG_P0, I2C_MEMADD_SIZE_8BIT, all_ones, 3, 100);
+    status = HAL_I2C_Mem_Write(pcal6524[0].i2c_handle, dev_addr, REG_CONFIG_P0, I2C_MEMADD_SIZE_8BIT, all_ones, 3, 100);
     if (status != HAL_OK) return status;
 
     // 2. Pull-up/down Enable: Enable internal resistors
-    status = HAL_I2C_Mem_Write(pcal6524.i2c_handle, dev_addr, REG_PUD_EN_P0, I2C_MEMADD_SIZE_8BIT, all_ones, 3, 100);
+    status = HAL_I2C_Mem_Write(pcal6524[0].i2c_handle, dev_addr, REG_PUD_EN_P0, I2C_MEMADD_SIZE_8BIT, all_ones, 3, 100);
     if (status != HAL_OK) return status;
 
     // 3. Pull-up/down Selection: Select PULL-UP (Active Low Buttons)
-    status = HAL_I2C_Mem_Write(pcal6524.i2c_handle, dev_addr, REG_PUD_SEL_P0, I2C_MEMADD_SIZE_8BIT, all_ones, 3, 100);
+    status = HAL_I2C_Mem_Write(pcal6524[0].i2c_handle, dev_addr, REG_PUD_SEL_P0, I2C_MEMADD_SIZE_8BIT, all_ones, 3, 100);
     if (status != HAL_OK) return status;
 
     // 4. Switch Debounce Enable: P0 and P1 only (Port 2 has no debounce hardware)
-    status = HAL_I2C_Mem_Write(pcal6524.i2c_handle, dev_addr, REG_SW_DEBOUNCE_EN_P0, I2C_MEMADD_SIZE_8BIT, debounce_en, 2, 100);
+    status = HAL_I2C_Mem_Write(pcal6524[0].i2c_handle, dev_addr, REG_SW_DEBOUNCE_EN_P0, I2C_MEMADD_SIZE_8BIT, debounce_en, 2, 100);
     if (status != HAL_OK) return status;
 
     // 5. Switch Debounce Count: ~5ms at 32kHz external clock
-    status = HAL_I2C_Mem_Write(pcal6524.i2c_handle, dev_addr, REG_SW_DEBOUNCE_COUNT, I2C_MEMADD_SIZE_8BIT, &debounce_val, 1, 100);
+    status = HAL_I2C_Mem_Write(pcal6524[0].i2c_handle, dev_addr, REG_SW_DEBOUNCE_COUNT, I2C_MEMADD_SIZE_8BIT, &debounce_val, 1, 100);
     if (status != HAL_OK) return status;
 
     // 6. Wait 9 clock cycles at 32kHz (~281us) for debounce clock to settle (datasheet Fig. 13)
     HAL_Delay(1);
 
     // 7. Interrupt Mask: Unmask all interrupts (0=Enable)
-    status = HAL_I2C_Mem_Write(pcal6524.i2c_handle, dev_addr, REG_INT_MASK_P0, I2C_MEMADD_SIZE_8BIT, all_zeros, 3, 100);
+    status = HAL_I2C_Mem_Write(pcal6524[0].i2c_handle, dev_addr, REG_INT_MASK_P0, I2C_MEMADD_SIZE_8BIT, all_zeros, 3, 100);
 
     return status;
 }
