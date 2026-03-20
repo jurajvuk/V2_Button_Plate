@@ -42,6 +42,6 @@ typedef struct {
 /****************************FUNCTION PROTOTYPES************************************/
 void PCAL6524_init(I2C_HandleTypeDef *ui2c_handle, uint16_t i2c_addr_u1, uint16_t i2c_addr_u2, uint16_t i2c_addr_u5, uint32_t timeout_ms);
 uint32_t Read_PCAL_DeviceID(uint8_t i2c_address);
-HAL_StatusTypeDef PCAL6524_register_init(uint8_t i2c_address);
+HAL_StatusTypeDef PCAL6524_register_init(void);
 
 #endif /* PCAL6524_H_ */

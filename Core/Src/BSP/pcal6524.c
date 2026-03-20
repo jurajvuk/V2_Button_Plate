@@ -26,37 +26,10 @@ void PCAL6524_init(I2C_HandleTypeDef *i2c_handle, uint16_t i2c_addr_u1, uint16_t
 
 uint32_t Read_PCAL_DeviceID(uint8_t i2c_address)
 {
-    /*
-    uint8_t device_id_cmd = 0x7F;
-    uint8_t received_id_bytes[3] = {0};
-    uint32_t device_id = 0;
-    HAL_StatusTypeDef status;
-
-    // The HAL library expects the 7-bit address shifted left by one
-    uint16_t hal_address = (uint16_t)(i2c_address << 1);
-    if (pcal6524.init_complete == 1)
-    {
-        // 1. Transmit the "read device ID" command byte
-        status = HAL_I2C_Master_Transmit(pcal6524.i2c_handle, hal_address, &device_id_cmd, 1, pcal6524.timeout_ms); // 100ms timeout
-
-        // 2. If the command was sent successfully, perform a read
-        if (status == HAL_OK)
-        {
-            status = HAL_I2C_Master_Receive(pcal6524.i2c_handle, hal_address, received_id_bytes, 3, pcal6524.timeout_ms);
-
-            if (status == HAL_OK)
-            {
-                // 3. If the read was successful, combine the bytes
-                device_id = (uint32_t)(received_id_bytes[0] << 16) | 
-                            (uint32_t)(received_id_bytes[1] << 8)  | 
-                            (uint32_t)(received_id_bytes[2]);
-            }
-        }
-    }
+    
     
 
-    return device_id;
-    */
+    
     // The NXP "Reserved Device ID" 7-bit address is 1111 100 (0x7C)
     // Write byte: 1111 1000 (0xF8), Read byte: 1111 1001 (0xF9)
     const uint16_t RESERVED_ADDR = (0x7C << 1); 
@@ -108,9 +81,8 @@ uint32_t Read_PCAL_DeviceID(uint8_t i2c_address)
   * using an external 32kHz clock provided on IO0_0.
   * @param  i2c_address: 7-bit address (0x20, 0x21, or 0x22)
   */
-HAL_StatusTypeDef PCAL6524_register_init(uint8_t i2c_address)
+HAL_StatusTypeDef PCAL6524_register_init(void)
 {
-    uint16_t dev_addr = (i2c_address << 1);
     uint8_t all_ones[3] = {0xFF, 0xFF, 0xFF};
     uint8_t all_zeros[3] = {0x00, 0x00, 0x00};
     
@@ -122,32 +94,36 @@ HAL_StatusTypeDef PCAL6524_register_init(uint8_t i2c_address)
     uint8_t debounce_val = 160;
 
     HAL_StatusTypeDef status;
+    for (int i = 0; i < 3; i++) {
+        if (pcal6524[i].init_complete) {
+            // 1. Configuration: Set all 24 pins as INPUTS
+            status = HAL_I2C_Mem_Write(pcal6524[i].i2c_handle, pcal6524[i].i2c_addr, REG_CONFIG_P0, I2C_MEMADD_SIZE_8BIT, all_ones, 3, pcal6524[i].timeout_ms);
+            if (status != HAL_OK) return status;
 
-    // 1. Configuration: Set all 24 pins as INPUTS
-    status = HAL_I2C_Mem_Write(pcal6524[0].i2c_handle, dev_addr, REG_CONFIG_P0, I2C_MEMADD_SIZE_8BIT, all_ones, 3, 100);
-    if (status != HAL_OK) return status;
+            // 2. Pull-up/down Enable: Enable internal resistors
+            status = HAL_I2C_Mem_Write(pcal6524[i].i2c_handle, pcal6524[i].i2c_addr, REG_PUD_EN_P0, I2C_MEMADD_SIZE_8BIT, all_ones, 3, pcal6524[i].timeout_ms);
+            if (status != HAL_OK) return status;
 
-    // 2. Pull-up/down Enable: Enable internal resistors
-    status = HAL_I2C_Mem_Write(pcal6524[0].i2c_handle, dev_addr, REG_PUD_EN_P0, I2C_MEMADD_SIZE_8BIT, all_ones, 3, 100);
-    if (status != HAL_OK) return status;
+            // 3. Pull-up/down Selection: Select PULL-UP (Active Low Buttons)
+            status = HAL_I2C_Mem_Write(pcal6524[i].i2c_handle, pcal6524[i].i2c_addr, REG_PUD_SEL_P0, I2C_MEMADD_SIZE_8BIT, all_ones, 3, pcal6524[i].timeout_ms);
+            if (status != HAL_OK) return status;
 
-    // 3. Pull-up/down Selection: Select PULL-UP (Active Low Buttons)
-    status = HAL_I2C_Mem_Write(pcal6524[0].i2c_handle, dev_addr, REG_PUD_SEL_P0, I2C_MEMADD_SIZE_8BIT, all_ones, 3, 100);
-    if (status != HAL_OK) return status;
+            // 4. Switch Debounce Enable: P0 and P1 only (Port 2 has no debounce hardware)
+            status = HAL_I2C_Mem_Write(pcal6524[i].i2c_handle, pcal6524[i].i2c_addr, REG_SW_DEBOUNCE_EN_P0, I2C_MEMADD_SIZE_8BIT, debounce_en, 2, pcal6524[i].timeout_ms);
+            if (status != HAL_OK) return status;
 
-    // 4. Switch Debounce Enable: P0 and P1 only (Port 2 has no debounce hardware)
-    status = HAL_I2C_Mem_Write(pcal6524[0].i2c_handle, dev_addr, REG_SW_DEBOUNCE_EN_P0, I2C_MEMADD_SIZE_8BIT, debounce_en, 2, 100);
-    if (status != HAL_OK) return status;
+            // 5. Switch Debounce Count: ~5ms at 32kHz external clock
+            status = HAL_I2C_Mem_Write(pcal6524[i].i2c_handle, pcal6524[i].i2c_addr, REG_SW_DEBOUNCE_COUNT, I2C_MEMADD_SIZE_8BIT, &debounce_val, 1, pcal6524[i].timeout_ms);
+            if (status != HAL_OK) return status;
 
-    // 5. Switch Debounce Count: ~5ms at 32kHz external clock
-    status = HAL_I2C_Mem_Write(pcal6524[0].i2c_handle, dev_addr, REG_SW_DEBOUNCE_COUNT, I2C_MEMADD_SIZE_8BIT, &debounce_val, 1, 100);
-    if (status != HAL_OK) return status;
+            // 6. Wait 9 clock cycles at 32kHz (~281us) for debounce clock to settle (datasheet Fig. 13)
+            HAL_Delay(1);
 
-    // 6. Wait 9 clock cycles at 32kHz (~281us) for debounce clock to settle (datasheet Fig. 13)
-    HAL_Delay(1);
-
-    // 7. Interrupt Mask: Unmask all interrupts (0=Enable)
-    status = HAL_I2C_Mem_Write(pcal6524[0].i2c_handle, dev_addr, REG_INT_MASK_P0, I2C_MEMADD_SIZE_8BIT, all_zeros, 3, 100);
+            // 7. Interrupt Mask: Unmask all interrupts (0=Enable)
+            status = HAL_I2C_Mem_Write(pcal6524[i].i2c_handle, pcal6524[i].i2c_addr, REG_INT_MASK_P0, I2C_MEMADD_SIZE_8BIT, all_zeros, 3, pcal6524[i].timeout_ms);
+        }
+    }
+    
 
     return status;
 }

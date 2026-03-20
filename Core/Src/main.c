@@ -120,7 +120,7 @@ int main(void)
   shifter_init(); // Initialize the shifters based on calibration data
   PCAL6524_init(&hi2c1, PCAL6524_I2C_ADDR_U1, PCAL6524_I2C_ADDR_U2, PCAL6524_I2C_ADDR_U5, 100);
   //uint32_t id1 = Read_PCAL_DeviceID(34);
-  PCAL6524_register_init(PCAL6524_I2C_ADDR_U1);
+  PCAL6524_register_init();
   
 
   ws2812_init(&htim1, TIM_CHANNEL_1); // Initialize WS2812B with the timer and channel
