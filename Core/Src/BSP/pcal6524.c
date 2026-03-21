@@ -119,8 +119,9 @@ HAL_StatusTypeDef PCAL6524_register_init(void)
             // 6. Wait 9 clock cycles at 32kHz (~281us) for debounce clock to settle (datasheet Fig. 13)
             HAL_Delay(1);
 
-            // 7. Interrupt Mask: Unmask all interrupts (0=Enable)
-            status = HAL_I2C_Mem_Write(pcal6524[i].i2c_handle, pcal6524[i].i2c_addr, REG_INT_MASK_P0, I2C_MEMADD_SIZE_8BIT, all_zeros, 3, pcal6524[i].timeout_ms);
+            // 7. Interrupt Mask: Unmask all interrupts except P0_0 (32kHz clock input)
+            uint8_t int_mask[3] = {0x01, 0x00, 0x00}; // 1=Masked, 0=Enabled
+            status = HAL_I2C_Mem_Write(pcal6524[i].i2c_handle, pcal6524[i].i2c_addr, REG_INT_MASK_P0, I2C_MEMADD_SIZE_8BIT, int_mask, 3, pcal6524[i].timeout_ms);
             if (status != HAL_OK) return status;
 
             // 8. Clear any pending interrupts by reading the input registers
