@@ -8,7 +8,7 @@
 
 
 /****************************FORWARD DECLARATIONS***********************************/
-static pcal6524_s pcal6524[3];
+pcal6524_s pcal6524[3];
 
 
 /*********************************FUNCTIONS*****************************************/
@@ -84,7 +84,6 @@ uint32_t Read_PCAL_DeviceID(uint8_t i2c_address)
 HAL_StatusTypeDef PCAL6524_register_init(void)
 {
     uint8_t all_ones[3] = {0xFF, 0xFF, 0xFF};
-    uint8_t all_zeros[3] = {0x00, 0x00, 0x00};
     
     // Debounce enable for P0 and P1 only — Port 2 has no debounce hardware.
     // SD0.0 (P0_0) MUST be set to 1 to connect external oscillator to debounce logic (AN13080 §3.1).

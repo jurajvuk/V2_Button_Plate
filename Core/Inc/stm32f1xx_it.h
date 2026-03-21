@@ -32,7 +32,8 @@ extern "C" {
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
-
+extern uint8_t g_input_data_U5[3];
+extern volatile uint8_t g_flag_U5;
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/

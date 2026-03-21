@@ -133,6 +133,14 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+    if (g_flag_U5) {
+      for (int i = 0; i < 8; i++) {
+        if (!((g_input_data_U5[1] >> i) & 1)) {
+          g_flag_U5 = i;
+        }
+      }
+      g_flag_U5 = 0;
+    }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
