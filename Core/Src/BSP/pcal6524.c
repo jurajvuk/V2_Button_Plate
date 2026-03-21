@@ -87,8 +87,8 @@ HAL_StatusTypeDef PCAL6524_register_init(void)
     uint8_t all_zeros[3] = {0x00, 0x00, 0x00};
     
     // Debounce enable for P0 and P1 only — Port 2 has no debounce hardware.
-    // P0_0 excluded (0xFE) because it carries the 32kHz external clock input.
-    uint8_t debounce_en[2] = {0xFE, 0xFF};
+    // SD0.0 (P0_0) MUST be set to 1 to connect external oscillator to debounce logic (AN13080 §3.1).
+    uint8_t debounce_en[2] = {0xFF, 0xFF};
 
     // Debounce Count: t_DP = T_clk × count → 5ms at 32kHz: (1/32000) × count = 0.005 → count = 160
     uint8_t debounce_val = 160;
@@ -108,27 +108,23 @@ HAL_StatusTypeDef PCAL6524_register_init(void)
             status = HAL_I2C_Mem_Write(pcal6524[i].i2c_handle, pcal6524[i].i2c_addr, REG_PUD_SEL_P0, I2C_MEMADD_SIZE_8BIT, all_ones, 3, pcal6524[i].timeout_ms);
             if (status != HAL_OK) return status;
 
-            // 4. Input Latch: Enable latching for debounced ports (required for debounce to work)
-            status = HAL_I2C_Mem_Write(pcal6524[i].i2c_handle, pcal6524[i].i2c_addr, REG_INPUT_LATCH_P0, I2C_MEMADD_SIZE_8BIT, all_ones, 3, pcal6524[i].timeout_ms);
-            if (status != HAL_OK) return status;
-
-            // 5. Switch Debounce Enable: P0 and P1 only (Port 2 has no debounce hardware)
+            // 4. Switch Debounce Enable: P0 and P1 only (Port 2 has no debounce hardware)
             status = HAL_I2C_Mem_Write(pcal6524[i].i2c_handle, pcal6524[i].i2c_addr, REG_SW_DEBOUNCE_EN_P0, I2C_MEMADD_SIZE_8BIT, debounce_en, 2, pcal6524[i].timeout_ms);
             if (status != HAL_OK) return status;
 
-            // 6. Switch Debounce Count: ~5ms at 32kHz external clock
+            // 5. Switch Debounce Count: ~5ms at 32kHz external clock
             status = HAL_I2C_Mem_Write(pcal6524[i].i2c_handle, pcal6524[i].i2c_addr, REG_SW_DEBOUNCE_COUNT, I2C_MEMADD_SIZE_8BIT, &debounce_val, 1, pcal6524[i].timeout_ms);
             if (status != HAL_OK) return status;
 
-            // 7. Wait 9 clock cycles at 32kHz (~281us) for debounce clock to settle (datasheet Fig. 13)
+            // 6. Wait 9 clock cycles at 32kHz (~281us) for debounce clock to settle (datasheet Fig. 13)
             HAL_Delay(1);
 
-            // 8. Interrupt Mask: Unmask all interrupts except P0_0 (32kHz clock input)
+            // 7. Interrupt Mask: Unmask all interrupts except P0_0 (32kHz clock input)
             uint8_t int_mask[3] = {0x01, 0x00, 0x00}; // 1=Masked, 0=Enabled
             status = HAL_I2C_Mem_Write(pcal6524[i].i2c_handle, pcal6524[i].i2c_addr, REG_INT_MASK_P0, I2C_MEMADD_SIZE_8BIT, int_mask, 3, pcal6524[i].timeout_ms);
             if (status != HAL_OK) return status;
 
-            // 9. Clear any pending interrupts by reading the input registers
+            // 8. Clear any pending interrupts by reading the input registers
             uint8_t dummy[3];
             status = HAL_I2C_Mem_Read(pcal6524[i].i2c_handle, pcal6524[i].i2c_addr, REG_INPUT_P0, I2C_MEMADD_SIZE_8BIT, dummy, 3, pcal6524[i].timeout_ms);
         }

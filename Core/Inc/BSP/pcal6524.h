@@ -19,9 +19,6 @@
 #define REG_PUD_EN_P0           0x4C  // Pull-up/down Enable Port 0
 #define REG_PUD_SEL_P0          0x50  // Pull-up/down Selection Port 0 (0=PD, 1=PU)
 
-// Input Latch Register
-#define REG_INPUT_LATCH_P0      0x48  // Input Latch Port 0
-
 // Switch Debounce Registers (Agile I/O — P0 and P1 only; P2 has no debounce hardware)
 #define REG_SW_DEBOUNCE_EN_P0   0x74  // Switch Debounce Enable Port 0 (1=Enable)
 #define REG_SW_DEBOUNCE_EN_P1   0x75  // Switch Debounce Enable Port 1 (1=Enable)
