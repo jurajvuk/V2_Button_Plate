@@ -19,6 +19,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "stm32f1xx_hal_gpio.h"
 #include "stm32f1xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -300,5 +301,19 @@ void TIM4_IRQHandler(void)
 }
 
 /* USER CODE BEGIN 1 */
-
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+  // U1 prekidna rutina
+  if (GPIO_Pin == GPIO_PIN_0) {
+    
+  }
+  // U5 prekidna rutina
+  else if (GPIO_Pin == GPIO_PIN_1) {
+    
+  }
+  // U2 prekidna rutina
+  else if (GPIO_Pin == GPIO_PIN_2) {
+    
+  }
+}
 /* USER CODE END 1 */
