@@ -56,7 +56,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+extern DMA_HandleTypeDef hdma_adc1;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -112,6 +112,7 @@ int main(void)
   usb_hid_init(); // Initialize USB HID report structure
   
   HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adc_raw_input, 6);
+  __HAL_DMA_DISABLE_IT(&hdma_adc1, DMA_IT_TC | DMA_IT_HT); // Circular DMA doesn't need interrupts
   HAL_Delay(10); // Allow ADC to stabilize
   adc_input_init(); // Initialize magnetic shifters
   calibration_init();
