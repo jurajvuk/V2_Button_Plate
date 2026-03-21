@@ -121,6 +121,11 @@ HAL_StatusTypeDef PCAL6524_register_init(void)
 
             // 7. Interrupt Mask: Unmask all interrupts (0=Enable)
             status = HAL_I2C_Mem_Write(pcal6524[i].i2c_handle, pcal6524[i].i2c_addr, REG_INT_MASK_P0, I2C_MEMADD_SIZE_8BIT, all_zeros, 3, pcal6524[i].timeout_ms);
+            if (status != HAL_OK) return status;
+
+            // 8. Clear any pending interrupts by reading the input registers
+            uint8_t dummy[3];
+            status = HAL_I2C_Mem_Read(pcal6524[i].i2c_handle, pcal6524[i].i2c_addr, REG_INPUT_P0, I2C_MEMADD_SIZE_8BIT, dummy, 3, pcal6524[i].timeout_ms);
         }
     }
     
