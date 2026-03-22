@@ -47,6 +47,9 @@
 uint8_t g_input_data_U5[3] = {255, 255, 255};
 volatile uint8_t g_flag_U5 = 0;
 volatile uint8_t time1 = 20;
+HAL_StatusTypeDef status_U1;
+HAL_StatusTypeDef status_U2;
+HAL_StatusTypeDef status_U5;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -313,11 +316,13 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
   }
   // U5 prekidna rutina
   else if (GPIO_Pin == GPIO_PIN_1) {
-    HAL_StatusTypeDef status_U5;
-    status_U5 = HAL_I2C_Mem_Read(pcal6524[2].i2c_handle, pcal6524[2].i2c_addr, REG_INPUT_P0, I2C_MEMADD_SIZE_8BIT, g_input_data_U5, 3, pcal6524[2].timeout_ms);
-    if (status_U5 == HAL_OK) {
-      g_flag_U5 = 1;
+    if (!g_flag_U5) {
+      status_U5 = HAL_I2C_Mem_Read(pcal6524[2].i2c_handle, pcal6524[2].i2c_addr, REG_INPUT_P0, I2C_MEMADD_SIZE_8BIT, g_input_data_U5, 3, pcal6524[2].timeout_ms);
+      if (status_U5 == HAL_OK) {
+        g_flag_U5 = 1;
+      }
     }
+    
   }
   // U2 prekidna rutina
   else if (GPIO_Pin == GPIO_PIN_2) {
