@@ -21,6 +21,7 @@
 #ifndef __STM32F1xx_IT_H
 #define __STM32F1xx_IT_H
 
+#include <stdint.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -34,6 +35,7 @@ extern "C" {
 /* USER CODE BEGIN ET */
 extern uint8_t g_input_data_U5[3];
 extern volatile uint8_t g_flag_U5;
+extern volatile uint8_t time1;
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/

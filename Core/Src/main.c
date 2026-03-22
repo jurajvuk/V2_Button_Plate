@@ -136,10 +136,18 @@ int main(void)
     if (g_flag_U5) {
       for (int i = 0; i < 8; i++) {
         if (!((g_input_data_U5[1] >> i) & 1)) {
-          g_flag_U5 = i;
+          HID_InputReport.buttons[1] |= (1 << i); // Set the button when pressed
         }
       }
+      usb_hid_send_report(&HID_InputReport);
       g_flag_U5 = 0;
+    }
+    if (time1 == 0) {
+      for (int i = 0; i < 8; i++) {
+        HID_InputReport.buttons[1] = (!((g_input_data_U5[1] >> i) & 1) << i); // Set the button when pressed
+      }
+      //usb_hid_send_report(&HID_InputReport);
+      time1 = 20;
     }
     /* USER CODE END WHILE */
 

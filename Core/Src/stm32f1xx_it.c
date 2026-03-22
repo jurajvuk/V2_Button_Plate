@@ -44,8 +44,9 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
-uint8_t g_input_data_U5[3] = {0, 0, 0};
+uint8_t g_input_data_U5[3] = {255, 255, 255};
 volatile uint8_t g_flag_U5 = 0;
+volatile uint8_t time1 = 20;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -321,6 +322,15 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
   // U2 prekidna rutina
   else if (GPIO_Pin == GPIO_PIN_2) {
     
+  }
+}
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+  if (htim == &htim4) {
+    if (time1 > 0) {
+      time1--;
+    }
   }
 }
 /* USER CODE END 1 */
