@@ -34,6 +34,9 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define U1  0
+#define U2  1
+#define U5  2
 
 /* USER CODE END PD */
 
@@ -317,7 +320,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
   // U5 prekidna rutina
   else if (GPIO_Pin == GPIO_PIN_1) {
     if (!g_flag_U5) {
-      status_U5 = HAL_I2C_Mem_Read(pcal6524[2].i2c_handle, pcal6524[2].i2c_addr, REG_INPUT_P0, I2C_MEMADD_SIZE_8BIT, g_input_data_U5, 3, pcal6524[2].timeout_ms);
+      status_U5 = HAL_I2C_Mem_Read(pcal6524[U5].i2c_handle, pcal6524[U5].i2c_addr, REG_INPUT_P0, I2C_MEMADD_SIZE_8BIT, g_input_data_U5, 3, pcal6524[U5].timeout_ms);
       if (status_U5 == HAL_OK) {
         g_flag_U5 = 1;
       }
