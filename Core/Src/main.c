@@ -46,6 +46,10 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define MS_TIME_FOR_SEND_REPORT 20
+#define INPUT_U1_OFFSET         1
+#define INPUT_U2_OFFSET         3
+#define INPUT_U5_OFFSET         5
 
 /* USER CODE END PD */
 
@@ -132,20 +136,20 @@ int main(void)
   while (1)
   {
     if (g_flag_U1) {
-      assign_inputs_to_HID_structure(g_input_data_U1, 1);
+      assign_inputs_to_HID_structure(g_input_data_U1, INPUT_U1_OFFSET);
       g_flag_U1 = 0;
     }
     else if (g_flag_U2) {
-      assign_inputs_to_HID_structure(g_input_data_U2, 3);
+      assign_inputs_to_HID_structure(g_input_data_U2, INPUT_U2_OFFSET);
       g_flag_U2 = 0;
     }
     else if (g_flag_U5) {
-      assign_inputs_to_HID_structure(g_input_data_U5, 5);
+      assign_inputs_to_HID_structure(g_input_data_U5, INPUT_U5_OFFSET);
       g_flag_U5 = 0;
     }
     if (time1 == 0) {
       usb_hid_send_report(&HID_InputReport);
-      time1 = 20;
+      time1 = MS_TIME_FOR_SEND_REPORT;
     }
     
     /* USER CODE END WHILE */
