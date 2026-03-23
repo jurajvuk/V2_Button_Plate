@@ -16,6 +16,7 @@ void assign_inputs_to_HID_structure(uint8_t inputs[3])
         if (i == 0) {
           inputs[i] |= ~0xFE;
         }
+        // Invert because buttons are active-low (pressed=0, released=1)
         HID_InputReport.buttons[i] = ~inputs[i];
       }
 }

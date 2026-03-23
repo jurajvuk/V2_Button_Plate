@@ -134,12 +134,23 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    if (g_flag_U5) {
-      // Invert because buttons are active-low (pressed=0, released=1)
+    if (g_flag_U1) {
+      assign_inputs_to_HID_structure(g_input_data_U1);
+      g_flag_U1 = 0;
+    }
+    else if (g_flag_U2) {
+      assign_inputs_to_HID_structure(g_input_data_U2);
+      g_flag_U2 = 0;
+    }
+    else if (g_flag_U5) {
       assign_inputs_to_HID_structure(g_input_data_U5);
-      usb_hid_send_report(&HID_InputReport);
       g_flag_U5 = 0;
     }
+    if (time1 == 0) {
+      usb_hid_send_report(&HID_InputReport);
+      time1 = 20;
+    }
+    
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
