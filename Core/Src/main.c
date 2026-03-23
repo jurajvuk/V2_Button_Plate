@@ -132,15 +132,15 @@ int main(void)
   while (1)
   {
     if (g_flag_U1) {
-      assign_inputs_to_HID_structure(g_input_data_U1);
+      assign_inputs_to_HID_structure(g_input_data_U1, 1);
       g_flag_U1 = 0;
     }
     else if (g_flag_U2) {
-      assign_inputs_to_HID_structure(g_input_data_U2);
+      assign_inputs_to_HID_structure(g_input_data_U2, 3);
       g_flag_U2 = 0;
     }
     else if (g_flag_U5) {
-      assign_inputs_to_HID_structure(g_input_data_U5);
+      assign_inputs_to_HID_structure(g_input_data_U5, 5);
       g_flag_U5 = 0;
     }
     if (time1 == 0) {
