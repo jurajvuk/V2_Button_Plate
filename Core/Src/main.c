@@ -111,22 +111,19 @@ int main(void)
   HAL_TIM_Base_Start_IT(&htim4);
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
   usb_hid_init(); // Initialize USB HID report structure
-  
   HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adc_raw_input, 6);
   __HAL_DMA_DISABLE_IT(&hdma_adc1, DMA_IT_TC | DMA_IT_HT); // Circular DMA doesn't need interrupts
   HAL_Delay(10); // Allow ADC to stabilize
   adc_input_init(); // Initialize magnetic shifters
   calibration_init();
   Load_Calibration_Data(); // Load calibration data from flash memory
-  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
   shifter_init(); // Initialize the shifters based on calibration data
   PCAL6524_init(&hi2c1, PCAL6524_I2C_ADDR_U1, PCAL6524_I2C_ADDR_U2, PCAL6524_I2C_ADDR_U5, 100);
-  //uint32_t id1 = Read_PCAL_DeviceID(34);
   PCAL6524_register_init();
   
-
   ws2812_init(&htim1, TIM_CHANNEL_1); // Initialize WS2812B with the timer and channel
   ws2812_send(0, 0, 0); // Send a red color to the first LED as a test
+  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
 
   /* USER CODE END 2 */
 
