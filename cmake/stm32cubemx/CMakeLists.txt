@@ -45,6 +45,7 @@ set(MX_Application_Src
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/BSP/shifters.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/BSP/usb_hid_report.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/BSP/ws2812b.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/BSP/helpers.c
 
 )
 

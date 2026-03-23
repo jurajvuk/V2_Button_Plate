@@ -35,6 +35,7 @@
 #include "BSP/ws2812b.h"
 #include "stm32f1xx_it.h"
 #include "usbd_custom_hid_if.h"
+#include "BSP/helpers.h"
 
 /* USER CODE END Includes */
 
@@ -135,12 +136,7 @@ int main(void)
   {
     if (g_flag_U5) {
       // Invert because buttons are active-low (pressed=0, released=1)
-      for (int i = 0; i < 3; i++) {
-        if (i == 0) {
-          g_input_data_U5[i] |= ~0xFE;
-        }
-        HID_InputReport.buttons[i] = ~g_input_data_U5[i];
-      }
+      assign_inputs_to_HID_structure(g_input_data_U5);
       usb_hid_send_report(&HID_InputReport);
       g_flag_U5 = 0;
     }

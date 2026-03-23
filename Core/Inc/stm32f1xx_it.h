@@ -33,7 +33,11 @@ extern "C" {
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
+extern uint8_t g_input_data_U1[3];
+extern uint8_t g_input_data_U2[3];
 extern uint8_t g_input_data_U5[3];
+extern volatile uint8_t g_flag_U1;
+extern volatile uint8_t g_flag_U2;
 extern volatile uint8_t g_flag_U5;
 extern volatile uint8_t time1;
 /* USER CODE END ET */
