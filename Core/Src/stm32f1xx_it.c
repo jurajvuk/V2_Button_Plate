@@ -25,6 +25,7 @@
 /* USER CODE BEGIN Includes */
 #include "i2c.h"
 #include "BSP/pcal6524.h"
+#include "BSP/ws2812b.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -57,6 +58,7 @@ volatile uint8_t time1 = 20;
 HAL_StatusTypeDef status_U1;
 HAL_StatusTypeDef status_U2;
 HAL_StatusTypeDef status_U5;
+volatile uint32_t simhub_keepalive_counter = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -354,5 +356,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
       time1--;
     }
   }
+  simhub_keepalive_counter++;
+}
+
+void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
+{
+    ws2812_dma_complete_callback(htim);
 }
 /* USER CODE END 1 */

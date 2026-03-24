@@ -126,7 +126,6 @@ int main(void)
   PCAL6524_register_init();
   
   ws2812_init(&htim1, TIM_CHANNEL_1); // Initialize WS2812B with the timer and channel
-  ws2812_send(0, 0, 0); // Send a red color to the first LED as a test
   HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
 
   /* USER CODE END 2 */

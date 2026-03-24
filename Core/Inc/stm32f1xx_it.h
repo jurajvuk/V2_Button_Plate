@@ -40,6 +40,7 @@ extern volatile uint8_t g_flag_U1;
 extern volatile uint8_t g_flag_U2;
 extern volatile uint8_t g_flag_U5;
 extern volatile uint8_t time1;
+extern volatile uint32_t simhub_keepalive_counter;
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/

@@ -23,6 +23,8 @@
 
 /* USER CODE BEGIN INCLUDE */
 #include "BSP/calibration.h"
+#include "BSP/ws2812b.h"
+#include "stm32f1xx_it.h"
 /* USER CODE END INCLUDE */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -134,24 +136,45 @@ __ALIGN_BEGIN static uint8_t CUSTOM_HID_ReportDesc_FS[USBD_CUSTOM_HID_REPORT_DES
   0x81, 0x02,                    //   Input (Data,Var,Abs)
 
   // ===================================================================
-  // Report ID 3: LED Data Chunk
-  // Total size: 1 (ID) + 1 (Index) + 60 (Data) = 62 bytes
+  // Report ID 3: SimHub Standard HID LED Protocol
+  // Total size: 1 (ID) + 3 (Header) + 60 (RGB Data) = 64 bytes
+  // Supports 52 LEDs across 3 packets per frame
   // ===================================================================
   0x85, 0x03,                    //   Report ID (3)
   0x06, 0x02, 0xFF,              //   Usage Page (Vendor-Defined 2)
-  
-  // Chunk Index (1 byte)
-  0x09, 0x21,                    //   Usage (LED Chunk Index)
+ 
+  // Start LED Index (1 byte) — which LED to begin writing at
+  0x09, 0x21,                    //   Usage (Vendor Usage 0x21)
   0x15, 0x00,                    //   Logical Minimum (0)
-  0x25, 0xFF,                    //   Logical Maximum (255)
+  0x26, 0xFF, 0x00,              //   Logical Maximum (255)
   0x75, 0x08,                    //   Report Size (8)
   0x95, 0x01,                    //   Report Count (1)
   0x91, 0x02,                    //   Output (Data,Var,Abs)
-  
-  // LED RGB Data (60 bytes)
-  0x09, 0x22,                    //   Usage (LED Data Chunk)
+ 
+  // Affected LED Count (1 byte) — how many LEDs in this packet
+  0x09, 0x22,                    //   Usage (Vendor Usage 0x22)
   0x15, 0x00,                    //   Logical Minimum (0)
-  0x25, 0xFF,                    //   Logical Maximum (255)
+  0x26, 0xFF, 0x00,              //   Logical Maximum (255)
+  0x75, 0x08,                    //   Report Size (8)
+  0x95, 0x01,                    //   Report Count (1)
+  0x91, 0x02,                    //   Output (Data,Var,Abs)
+ 
+  // Draw Flag (1 byte)
+  //   0 = more packets coming
+  //   1 = last packet → trigger LED refresh
+  //   2 = SimHub connected (on connect report)
+  //   3 = SimHub disconnecting (on disconnect report)
+  0x09, 0x23,                    //   Usage (Vendor Usage 0x23)
+  0x15, 0x00,                    //   Logical Minimum (0)
+  0x26, 0xFF, 0x00,              //   Logical Maximum (255)
+  0x75, 0x08,                    //   Report Size (8)
+  0x95, 0x01,                    //   Report Count (1)
+  0x91, 0x02,                    //   Output (Data,Var,Abs)
+ 
+  // LED RGB Data (60 bytes = 20 LEDs max per packet)
+  0x09, 0x24,                    //   Usage (Vendor Usage 0x24)
+  0x15, 0x00,                    //   Logical Minimum (0)
+  0x26, 0xFF, 0x00,              //   Logical Maximum (255)
   0x75, 0x08,                    //   Report Size (8)
   0x95, 0x3C,                    //   Report Count (60)
   0x91, 0x02,                    //   Output (Data,Var,Abs)
@@ -275,10 +298,45 @@ static int8_t CUSTOM_HID_OutEvent_FS(uint8_t event_idx, uint8_t state)
 
 
   // Check which report was received
-  if (report_id == 0x03) // Report ID 3 is for LED data
+  if (report_id == 0x03) // Report ID 3 — SimHub Standard HID LED Protocol
   {
-    // Add your code here to process the LED data chunk
-    // from hhid->Report_buf[1] onwards.
+      uint8_t start_led  = hhid->Report_buf[1];  // First LED index to update
+      uint8_t led_count  = hhid->Report_buf[2];   // Number of LEDs in this packet
+      uint8_t draw_flag  = hhid->Report_buf[3];   // 0=more, 1=last, 2=connect, 3=disconnect
+ 
+      // Handle connect/disconnect signals
+      if (draw_flag == 2)
+      {
+          // SimHub just connected
+          g_simhub_connected = 1;
+          simhub_keepalive_counter = 0;
+          return (USBD_OK);
+      }
+      else if (draw_flag == 3)
+      {
+          // SimHub is disconnecting — turn off all LEDs
+          g_simhub_connected = 0;
+          memset(led_buffer, 0, sizeof(led_buffer));
+          g_flag_led_update = 1;
+          return (USBD_OK);
+      }
+ 
+      // Copy RGB data into LED buffer
+      // SimHub sends RGB order — ws2812_update() handles RGB→GRB conversion
+      for (uint8_t i = 0; i < led_count && (start_led + i) < NUM_OF_LEDS; i++)
+      {
+          uint8_t offset = 4 + (i * 3);  // RGB data starts at byte 4
+          led_buffer[start_led + i].r = hhid->Report_buf[offset];
+          led_buffer[start_led + i].g = hhid->Report_buf[offset + 1];
+          led_buffer[start_led + i].b = hhid->Report_buf[offset + 2];
+      }
+ 
+      // Draw flag 1 = last packet in frame → trigger LED update
+      if (draw_flag == 1)
+      {
+          g_flag_led_update = 1;
+          simhub_keepalive_counter = 0;  // Reset keepalive timeout
+      }
   }
   else if (report_id == 0x04) // Report ID 4 is for Calibration data
   {
