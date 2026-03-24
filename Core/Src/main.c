@@ -150,6 +150,25 @@ int main(void)
       usb_hid_send_report(&HID_InputReport);
       time1 = MS_TIME_FOR_SEND_REPORT;
     }
+    // --- WS2812B LED update (triggered by SimHub draw flag) ---
+    if (g_flag_led_update)
+    {
+        ws2812_update();
+        g_flag_led_update = 0;
+    }
+ 
+    // --- SimHub keepalive timeout (6 seconds) ---
+    // SimHub sends a keepalive draw every 5 seconds.
+    // If we don't hear from it in 6 seconds, assume it disconnected.
+    // NOTE: simhub_keepalive_counter should be incremented in your
+    //       SysTick or TIM4 interrupt every 1ms.
+    if (g_simhub_connected && simhub_keepalive_counter > 6000)
+    {
+        memset(led_buffer, 0, sizeof(led_buffer));
+        ws2812_update();
+        g_simhub_connected = 0;
+        simhub_keepalive_counter = 0;
+    }
     
     /* USER CODE END WHILE */
 
