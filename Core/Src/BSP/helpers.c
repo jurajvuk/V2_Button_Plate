@@ -14,12 +14,25 @@
 /*********************************FUNCTIONS*****************************************/
 void assign_inputs_to_HID_structure(uint8_t inputs[3], uint8_t offset)
 {
-  
-  for (int i = 0; i < 2; i++) {
+  if (offset == 1) {
+    
+  }
+  else if (offset == 3) {
+    for (int i = 0; i < 2; i++) {
       if (i == 0) {
         inputs[i] |= ~0xFE;
       }
       // Invert because buttons are active-low (pressed=0, released=1)
       HID_InputReport.buttons[offset + i] = ~inputs[i];
+    }
+  }
+  else if (offset == 5) {
+    for (int i = 0; i < 2; i++) {
+      if (i == 0) {
+        inputs[i] |= ~0xFE;
+      }
+      // Invert because buttons are active-low (pressed=0, released=1)
+      HID_InputReport.buttons[offset + i] = ~inputs[i];
+    }
   }
 }
